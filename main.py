@@ -1,15 +1,14 @@
-from fastapi.encoders import jsonable_encoder
-
-import schema
-import model
-from database import SessionLocal, engine
 from fastapi import FastAPI, Depends, Request, Form
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from fastapi.responses import HTMLResponse, JSONResponse
 from starlette.responses import RedirectResponse
 
+import model
+import schema
+from database import SessionLocal, engine
 
 app = FastAPI()
 model.Base.metadata.create_all(bind=engine)
@@ -34,7 +33,7 @@ def read_movies(request: Request, db: Session = Depends(get_database_session)):
 
 @app.get("/movie/{name}", response_class=HTMLResponse)
 def read_movie(request: Request, name: schema.Movie.name, db: Session = Depends(get_database_session)):
-    item = db.query(model.Movie).filter(model.Movie.id==name).first()
+    item = db.query(model.Movie).filter(model.Movie.id == name).first()
     print(item)
     return templates.TemplateResponse("overview.html", {"request": request, "movie": item})
 
@@ -54,7 +53,8 @@ async def create_movie(db: Session = Depends(get_database_session),
 
 
 @app.patch("/movie/{id}")
-async def update_movie(request: Request, id: int, db: Session=Depends(get_database_session)):
+async def update_movie(request: Request, id: int,
+                       db: Session = Depends(get_database_session)):
     req_body = await request.json()
     movie = db.query(model.Movie).get(id)
     movie.name = req_body.get('name')
